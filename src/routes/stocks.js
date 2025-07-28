@@ -2,18 +2,18 @@ import express from "express";
 import axios from "axios";
 
 const router = express.Router();
-const API_KEY = "NGOH5C8Z3YBWKDJ9";
+const API_KEY = "d23f07hr01qgiro3epigd23f07hr01qgiro3epj0";
 const symbols = ["AAPL", "MSFT", "GOOGL"];
 
 router.get("/", async (req, res) => {
   try {
     const stockPromises = symbols.map(async (symbol) => {
-      const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY}`;
+      const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`;
       const response = await axios.get(url);
-      const data = response.data["Global Quote"];
+      const data = response.data;
       return {
-        symbol: data["01. symbol"],
-        price: data["05. price"],
+        symbol,
+        price: data.c,
       };
     });
 
