@@ -25,4 +25,16 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/search/:symbol", async (req, res) => {
+  try {
+    const symbol = req.params.symbol;
+    const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`;
+    const response = await axios.get(url);
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch stock data" });
+  }
+});
+
 export default router;

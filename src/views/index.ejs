@@ -9,6 +9,12 @@
   <body>
     <h1>Stock Price Tracker</h1>
 
+    <form id="searchForm" onsubmit="searchStock(event)">
+      <input type="text" id="searchInput" placeholder="Enter symbol" required />
+      <button type="submit">Search</button>
+    </form>
+    <div id="searchResult"></div>
+
     <% if (locals.stocks) { %> <% stocks.forEach((stock) => { %>
     <div class="card-row">
       <div class="card-col symbol"><%= stock.symbol %></div>
@@ -17,5 +23,37 @@
     <% }) %> <% } else { %>
     <p>No stock data</p>
     <% } %>
+
+    <script>
+      async function searchStock(event) {
+        event.preventDefault();
+        const symbol = document
+          .getElementById("searchInput")
+          .value.trim()
+          .toUpperCase();
+        if (!symbol) return;
+
+        const resultDiv = document.getElementById("searchResult");
+        resultDiv.textContent = "Loading...";
+
+        try {
+          const response = await fetch(`/search/${symbol}`);
+          const data = await response.json();
+
+          if (data.c) {
+            resultDiv.innerHTML = `
+              <div class="card-row">
+                <div class="card-col symbol">${symbol}</div>
+                <div class="card-col price">$${data.c}</div>
+              </div>
+            `;
+          } else {
+            resultDiv.textContent = "Symbol not found or API limit reached.";
+          }
+        } catch (err) {
+          resultDiv.textContent = "Error fetching data.";
+        }
+      }
+    </script>
   </body>
 </html>
