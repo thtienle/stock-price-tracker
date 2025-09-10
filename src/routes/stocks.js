@@ -14,6 +14,8 @@ router.get("/", async (req, res) => {
       return {
         symbol,
         price: data.c,
+        change: data.d,
+        changePercent: data.dp,
       };
     });
 

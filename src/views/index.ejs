@@ -7,22 +7,45 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <h1>Stock Price Tracker</h1>
+    <div class="container">
+      <h1>Stock Price Tracker</h1>
 
-    <form id="searchForm" onsubmit="searchStock(event)">
-      <input type="text" id="searchInput" placeholder="Enter symbol" required />
-      <button type="submit">Search</button>
-    </form>
-    <div id="searchResult"></div>
+      <form id="searchForm" onsubmit="searchStock(event)">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Enter symbol (e.g. TSLA)"
+          required
+        />
+        <button type="submit">Search</button>
+      </form>
+      <div id="searchResult"></div>
 
-    <% if (locals.stocks) { %> <% stocks.forEach((stock) => { %>
-    <div class="card-row">
-      <div class="card-col symbol"><%= stock.symbol %></div>
-      <div class="card-col price">$<%= stock.price %></div>
+      <% if (locals.stocks) { %> <% stocks.forEach((stock) => { %>
+      <div class="card-row">
+        <div class="card-col symbol"><%= stock.symbol %></div>
+        <div
+          class="card-col price <%= stock.change >= 0 ? 'positive' : 'negative' %>"
+        >
+          $<%= stock.price %>
+          <span class="change">
+            <%= stock.change >= 0 ? '▲' : '▼' %> <%= stock.change %> (<%=
+            stock.changePercent %>%)
+          </span>
+        </div>
+        <button onclick="addToWatchlist('<%= stock.symbol %>')">
+          Add to Watchlist
+        </button>
+      </div>
+      <% }) %> <% } else { %>
+      <p>No stock data</p>
+      <% } %>
+
+      <div id="watchlist">
+        <h2>Your Watchlist</h2>
+        <div id="watchlistItems"></div>
+      </div>
     </div>
-    <% }) %> <% } else { %>
-    <p>No stock data</p>
-    <% } %>
 
     <script>
       async function searchStock(event) {
@@ -44,7 +67,8 @@
             resultDiv.innerHTML = `
               <div class="card-row">
                 <div class="card-col symbol">${symbol}</div>
-                <div class="card-col price">$${data.c}</div>
+                <div class="card-col">$${data.c}</div>
+                <button onclick="addToWatchlist('${symbol}')">Add to Watchlist</button>
               </div>
             `;
           } else {
@@ -54,6 +78,42 @@
           resultDiv.textContent = "Error fetching data.";
         }
       }
+
+      function addToWatchlist(symbol) {
+        let watchlist = JSON.parse(localStorage.getItem("watchlist") || "[]");
+        if (!watchlist.includes(symbol)) {
+          watchlist.push(symbol);
+          localStorage.setItem("watchlist", JSON.stringify(watchlist));
+          alert(symbol + " added to watchlist!");
+          displayWatchlist();
+        } else {
+          alert(symbol + " is already in your watchlist.");
+        }
+      }
+
+      function removeFromWatchlist(symbol) {
+        let watchlist = JSON.parse(localStorage.getItem("watchlist") || "[]");
+        watchlist = watchlist.filter((s) => s !== symbol);
+        localStorage.setItem("watchlist", JSON.stringify(watchlist));
+        displayWatchlist();
+      }
+
+      function displayWatchlist() {
+        const watchlist = JSON.parse(localStorage.getItem("watchlist") || "[]");
+        const container = document.getElementById("watchlistItems");
+        if (watchlist.length === 0) {
+          container.innerHTML = "<p>No items in watchlist</p>";
+        } else {
+          container.innerHTML = watchlist
+            .map(
+              (symbol) =>
+                `<button  class="watchlist-item" onclick="removeFromWatchlist('${symbol}')">${symbol}</button>`
+            )
+            .join("");
+        }
+      }
+
+      displayWatchlist();
     </script>
   </body>
 </html>
