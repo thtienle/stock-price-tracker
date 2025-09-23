@@ -28,10 +28,10 @@
           class="card-col price <%= stock.change >= 0 ? 'positive' : 'negative' %>"
         >
           $<%= stock.price %>
-          <span class="change">
-            <%= stock.change >= 0 ? '▲' : '▼' %> <%= stock.change %> (<%=
-            stock.changePercent %>%)
-          </span>
+          <div class="change">
+            <%= stock.change >= 0 ? '▲' : '▼' %> <%= stock.change %>
+            (<%=stock.changePercent %>%)
+          </div>
         </div>
         <button onclick="addToWatchlist('<%= stock.symbol %>')">
           Add to Watchlist
@@ -67,8 +67,18 @@
             resultDiv.innerHTML = `
               <div class="card-row">
                 <div class="card-col symbol">${symbol}</div>
-                <div class="card-col">$${data.c}</div>
-                <button onclick="addToWatchlist('${symbol}')">Add to Watchlist</button>
+                <div class="card-col price ${
+                  data.d >= 0 ? "positive" : "negative"
+                }">
+                  $${data.c}
+                  <div class="change">
+                    ${data.d >= 0 ? "▲" : "▼"} ${data.d}
+                    (${data.dp}%)
+                  </div>
+                </div>
+                <button onclick="addToWatchlist('${symbol}')">
+                  Add to Watchlist
+                </button>
               </div>
             `;
           } else {
@@ -98,18 +108,79 @@
         displayWatchlist();
       }
 
-      function displayWatchlist() {
+      async function displayWatchlist() {
         const watchlist = JSON.parse(localStorage.getItem("watchlist") || "[]");
         const container = document.getElementById("watchlistItems");
+
         if (watchlist.length === 0) {
           container.innerHTML = "<p>No items in watchlist</p>";
-        } else {
-          container.innerHTML = watchlist
-            .map(
-              (symbol) =>
-                `<button  class="watchlist-item" onclick="removeFromWatchlist('${symbol}')">${symbol}</button>`
-            )
+          return;
+        }
+
+        container.innerHTML = "Loading...";
+
+        try {
+          const stockDataPromises = watchlist.map((symbol) =>
+            fetch(`/search/${symbol}`)
+              .then((response) => response.json())
+              .then((data) => ({ symbol, data }))
+              .catch((error) => ({ symbol, error }))
+          );
+
+          const results = await Promise.all(stockDataPromises);
+
+          const html = results
+            .map((result) => {
+              const { symbol, data, error } = result;
+
+              if (error || !data) {
+                return `
+                  <div class="card-row">
+                    <div class="card-col symbol">${symbol}</div>
+                    <div class="card-col">Error fetching data</div>
+                    <button onclick="removeFromWatchlist('${symbol}')">
+                      Remove
+                    </button>
+                  </div>
+                `;
+              }
+
+              if (!data.c) {
+                return `
+                  <div class="card-row">
+                    <div class="card-col symbol">${symbol}</div>
+                    <div class="card-col">No data available</div>
+                    <button onclick="removeFromWatchlist('${symbol}')">
+                      Remove
+                    </button>
+                  </div>
+                `;
+              }
+
+              return `
+                <div class="card-row">
+                  <div class="card-col symbol">${symbol}</div>
+                  <div class="card-col price ${
+                    data.d >= 0 ? "positive" : "negative"
+                  }">
+                    $${data.c}
+                    <div class="change">
+                      ${data.d >= 0 ? "▲" : "▼"} ${data.d}<br>
+                      (${data.dp}%)
+                    </div>
+                  </div>
+                  <button onclick="removeFromWatchlist('${symbol}')">
+                    Remove
+                  </button>
+                </div>
+              `;
+            })
             .join("");
+
+          container.innerHTML = html;
+        } catch (err) {
+          container.innerHTML = "<p>Error loading watchlist</p>";
+          console.error("Watchlist error:", err);
         }
       }
 

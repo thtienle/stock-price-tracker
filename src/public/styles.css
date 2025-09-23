@@ -49,6 +49,10 @@ button:hover {
   background: #45a049;
 }
 
+.change {
+  margin-top: 2px;
+}
+
 .container {
   max-width: 800px;
   margin: 0 auto;
@@ -93,26 +97,4 @@ button:hover {
 
 #watchlist {
   margin-top: 30px;
-}
-
-#watchlistItems {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.watchlist-item {
-  margin: 5px;
-  padding: 8px 16px;
-  border-radius: 5px;
-  background: green;
-  border: none;
-  cursor: pointer;
-  font-size: 1em;
-  transition: color 0.2s, text-decoration 0.2s;
-  display: inline-block;
-}
-
-.watchlist-item:hover {
-  text-decoration: line-through;
 }
