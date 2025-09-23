@@ -1,8 +1,12 @@
 import express from "express";
 import axios from "axios";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 const router = express.Router();
-const API_KEY = "d23f07hr01qgiro3epigd23f07hr01qgiro3epj0";
+const API_KEY = process.env.FINNHUB_API_KEY;
 const symbols = ["AAPL", "MSFT", "GOOGL"];
 
 router.get("/", async (req, res) => {
